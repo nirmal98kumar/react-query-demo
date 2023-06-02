@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-// import axios from 'axios'
+import axios from 'axios'
 import { request } from '../utils/axios-utils'
 
 const fetchSuperHeroes = () => {
@@ -11,16 +11,11 @@ export const useSuperHeroesData = (onSuccess, onError) => {
   return useQuery('super-heroes', fetchSuperHeroes, {
     onSuccess,
     onError
-    // select: data => {
-    //   const superHeroNames = data.data.map(hero => hero.name)
-    //   return superHeroNames
-    // }
   })
 }
 
 const addSuperHero = hero => {
-  // return axios.post('http://localhost:4000/superheroes', hero)
-  return request({ url: '/superheroes', method: 'post', data: hero })
+  return axios.post('http://localhost:4000/superheroes', hero)
 }
 
 export const useAddSuperHeroData = () => {
@@ -28,21 +23,20 @@ export const useAddSuperHeroData = () => {
 
   return useMutation(addSuperHero, {
     // onSuccess: data => {
-    //   /** Query Invalidation Start */
-    //   // queryClient.invalidateQueries('super-heroes')
-    //   /** Query Invalidation End */
+      /** Query Invalidation*/
+      // queryClient.invalidateQueries('super-heroes')
 
-    //   /** Handling Mutation Response Start */
-    // queryClient.setQueryData('super-heroes', oldQueryData => {
-    //   return {
-    //     ...oldQueryData,
-    //     data: [...oldQueryData.data, data.data]
-    //   }
-    // })
-    //   /** Handling Mutation Response Start */
-    // },
-    /**Optimistic Update Start */
-    onMutate: async newHero => {
+      /** Handling Mutation Response Start */
+      /* queryClient.setQueryData('super-heroes', (oldQueryData) => {    //REPLACING old query data in cache
+          return {
+            ...oldQueryData,
+            data: [...oldQueryData.data, data.data]
+          }
+        }) 
+      },*/
+
+    /**Optimistic Update */
+    onMutate: async (newHero)  => {                          /* called before mutation function fires */
       await queryClient.cancelQueries('super-heroes')
       const previousHeroData = queryClient.getQueryData('super-heroes')
       queryClient.setQueryData('super-heroes', oldQueryData => {
@@ -56,12 +50,12 @@ export const useAddSuperHeroData = () => {
       })
       return { previousHeroData }
     },
-    onError: (_err, _newTodo, context) => {
+    onError: (_err, _newTodo, context) => {                 /* called when mutation fails */   
       queryClient.setQueryData('super-heroes', context.previousHeroData)
     },
-    onSettled: () => {
-      queryClient.invalidateQueries('super-heroes')
+    onSettled: () => {                                      /* called when mutation either succeeds or fails */  
+      queryClient.invalidateQueries('super-heroes')         // fetch data to keep client side data in sync with server data  
     }
-    /**Optimistic Update End */
-  })
+  }
+  )
 }

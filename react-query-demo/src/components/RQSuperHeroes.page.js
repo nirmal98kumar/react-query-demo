@@ -22,7 +22,7 @@ export const RQSuperHeroesPage = () => {
     onError
   )
 
-  const { mutate: addHero } = useAddSuperHeroData()
+  const { mutate: addHero } = useAddSuperHeroData() 
 
   const handleAddHeroClick = () => {
     const hero = { name, alterEgo }
